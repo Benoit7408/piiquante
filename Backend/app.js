@@ -1,41 +1,49 @@
-
 const express = require("express");
 const bodyParser = require("body-parser");
-const userRoutes = require('./routes/user-route');
-const saucesRoutes = require('./routes/sauces-route');
-const likesRoutes = require('./routes/likes-route');
-const cors = require('cors');
+const userRoutes = require("./routes/user-route");
+const saucesRoutes = require("./routes/sauces-route");
+const likesRoutes = require("./routes/likes-route");
+const cors = require("cors");
 const path = require("path");
-const rateLimit = require('express-rate-limit');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const momorgan = require('mongoose-morgan');
-const xss = require('xss-clean');
+const rateLimit = require("express-rate-limit");
+const helmet = require("helmet");
+const morgan = require("morgan");
+const momorgan = require("mongoose-morgan");
+const xss = require("xss-clean");
+const mongoSanitize = require('express-mongo-sanitize');
 
 const app = express();
 app.use(cors());
 
 const corsOptions = {
-  origin : "*"
-}
+  origin: "*",
+};
 
 const apiLimiterCreateCount = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-	max: 1, // Limit each IP to 2 create account requests per `window` (here, per hour)
-	message:
-		'Too many accounts created from this IP, please try again after an hour',
-	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-})
+  max: 20, // Limit each IP to 5 create account requests per `window` (here, per hour)
+  message:
+    "Too many accounts created from this IP, please try again after an hour",
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 
-app.use(morgan('dev'))
-app.use(momorgan({
-  connectionString: "mongodb+srv://" + process.env.DB_USER_PASS + "@cluster0.y7vuz.mongodb.net/"+process.env.DB_USER_NAME
- }, {}, 'short'
-));
+app.use(morgan("dev"));
+app.use(
+  momorgan(
+    {
+      connectionString:
+        "mongodb+srv://" +
+        process.env.DB_USER_PASS +
+        "@cluster0.y7vuz.mongodb.net/" +
+        process.env.DB_USER_NAME,
+    },
+    {},
+    "short"
+  )
+);
 
-
-
+app.use(mongoSanitize());
 
 //-------------Permet les requete multi origine-------------
 app.use((req, res, next) => {
@@ -68,7 +76,7 @@ app.use(xss());
 app.use("/images", express.static(path.join(__dirname, "images")));
 app.use("/api/sauces", saucesRoutes);
 app.use("/api/auth", apiLimiterCreateCount, userRoutes);
-app.use('/api/sauces',likesRoutes);
+app.use("/api/sauces", likesRoutes);
 
 //app.use(helmet())
 module.exports = app;

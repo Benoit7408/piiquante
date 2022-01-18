@@ -8,9 +8,9 @@ const jwt = require("jsonwebtoken");
 
 exports.signup = (req, res, next) => {
   bcrypt
-    .hash(req.body.password, 10)
+    .hash(req.body.password,10)//plain text password,salt round
     .then((hash) => {
-      const user = new User({
+      const user = new User({ // créer un nouveau user,le sauvegarde dans la base de donnée,password encrypté
         email: req.body.email,
         password: hash,
       });
@@ -25,14 +25,18 @@ exports.signup = (req, res, next) => {
 exports.login = (req, res, next) => {
   User.findOne({ email: req.body.email })
     .then((user) => {
+      
       if (!user) {
-        return res.status(401).json({ error: "utilisateur non trouvé:!" });
+        return res.status(401).json({ message: "Aucun compte ne correspond à votre adresse email" });
       }
       bcrypt
         .compare(req.body.password, user.password)
         .then((valid) => {
           if (!valid) {
-            return res.status(401).json({ error: "mot de passe incorrect" });
+            res.writeHead(401,'Mot de passe incorrect')
+            res.end()
+            return
+           // return res.status(401).json({ message: "Votre mot de passe est incorrect" });
           }
           res.status(200).json({
             userId: user._id,

@@ -31,21 +31,43 @@ exports.findOneSauce = (req, res, next) => {
 };
 
 exports.updateOne = (req, res, next) => {
-  const saucesObject = req.file
-    ? {
-        ...JSON.parse(req.body.sauce),
-        imageUrl: `${req.protocol}://${req.get("host")}/images/${
-          req.file.filename
-        }`,
-      }
-    : { ...req.body };
+  Sauces.findOne({ _id: req.params.id })
+    .then((sauce) => {
+      console.log(sauce.imageUrl);
+      const oldImage = sauce.imageUrl.split("/images/")[1];
+      console.log(oldImage);
 
-  Sauces.updateOne(
-    { _id: req.params.id },
-    { ...saucesObject, _id: req.params.id }
-  )
-    .then(() => res.status(200).json({ message: "sauce modifié" }))
-    .catch((error) => res.status(404).json({ error }));
+      const saucesObject = req.file
+        ? {
+            ...JSON.parse(req.body.sauce),
+            imageUrl: `${req.protocol}://${req.get("host")}/images/${
+              req.file.filename
+            }`,
+          }
+        : { ...req.body };
+
+      if (saucesObject.imageUrl) {
+        fs.unlink(`images/${oldImage}`, () => {
+          Sauces.updateOne(
+            { _id: req.params.id },
+            { ...saucesObject, _id: req.params.id }
+          )
+            .then(() =>
+              res
+                .status(200)
+                .json({ message: "sauce modifié et image modifié" })
+            )
+            .catch((error) => res.status(404).json({ error }));
+        });
+      }
+      else Sauces.updateOne(
+        { _id: req.params.id },
+        { ...saucesObject, _id: req.params.id }
+      )
+        .then(() => res.status(200).json({ message: "sauce modifié" }))
+        .catch((error) => res.status(404).json({ error }));
+    })
+    .catch((error) => res.status(401).json("une erreur"));
 };
 
 exports.deleteOneSauce = (req, res, next) => {
@@ -73,7 +95,7 @@ exports.deleteOneSauce = (req, res, next) => {
 
 exports.likeSauce = (req, res, next) => {
   const userId = req.body.userId;
-  const sauceid = req.params.id;
+  
 
   switch (req.body.like) {
     case 1: {
@@ -96,9 +118,8 @@ exports.likeSauce = (req, res, next) => {
       break;
     }
     case 0: {
-      Sauces.findOne(
-        { _id: req.params.id })
-        .then(sauce => {
+      Sauces.findOne({ _id: req.params.id })
+        .then((sauce) => {
           if (sauce.usersLiked.includes(userId)) {
             Sauces.updateOne(
               { _id: req.params.id },
@@ -116,8 +137,7 @@ exports.likeSauce = (req, res, next) => {
           }
         })
         .catch((error) => res.status(400).json({ error }));
-        break;
-      }
+      break;
+    }
   }
-  }
-
+};
