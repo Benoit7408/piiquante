@@ -3,21 +3,22 @@ const bodyParser = require("body-parser");
 const userRoutes = require("./routes/user-route");
 const saucesRoutes = require("./routes/sauces-route");
 const likesRoutes = require("./routes/likes-route");
-const cors = require("cors");
+//const cors = require("cors");
 const path = require("path");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const momorgan = require("mongoose-morgan");
 const xss = require("xss-clean");
-const mongoSanitize = require('express-mongo-sanitize');
+const mongoSanitize = require("express-mongo-sanitize");
+const createError = require('http-errors')
 
 const app = express();
-app.use(cors());
+//app.use(cors());
 
-const corsOptions = {
-  origin: "*",
-};
+//const corsOptions = {
+//  origin: "*",
+//};
 
 const apiLimiterCreateCount = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
@@ -66,8 +67,12 @@ app.use(
   })
 );
 //------------Analyse le corp de la requete, nous permet d'interagir plus simplement et dans ce cas au format Json-------------
-
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+
+//app.use(express.json());
+//app.use(express.urlencoded({extended:true}));
 
 //-------------Les differentes routes interne et externe( voir les middleware coorespondant ainsi que les models-------------
 
