@@ -2,9 +2,8 @@ const mongoose = require("mongoose");
 
 //--------Les schemas, pour la bonne communication back et front-------------
 
-
 const saucesSchema = mongoose.Schema({
-  userId: {type: String,required: true},
+  userId: { type: String, required: true },
   name: { type: String, required: true },
   manufacturer: { type: String, required: true },
   description: { type: String, required: true },

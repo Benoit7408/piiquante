@@ -1,21 +1,24 @@
+// Les dépendances
 const express = require("express");
 const bodyParser = require("body-parser");
-const userRoutes = require("./routes/user-route");
-const saucesRoutes = require("./routes/sauces-route");
-const likesRoutes = require("./routes/likes-route");
-//const cors = require("cors");
 const path = require("path");
+
+//Sécurité et logs
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const momorgan = require("mongoose-morgan");
 const xss = require("xss-clean");
 const mongoSanitize = require("express-mongo-sanitize");
-const createError = require('http-errors')
+//const cors = require("cors");
+
+//Routes
+const userRoutes = require("./routes/user-route");
+const saucesRoutes = require("./routes/sauces-route");
+const likesRoutes = require("./routes/likes-route");
 
 const app = express();
 //app.use(cors());
-
 //const corsOptions = {
 //  origin: "*",
 //};
@@ -29,6 +32,7 @@ const apiLimiterCreateCount = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
+// utilisation des logs sur toutes les toute de notre app
 app.use(morgan("dev"));
 app.use(
   momorgan(
@@ -46,7 +50,7 @@ app.use(
 
 app.use(mongoSanitize());
 
-//-------------Permet les requete multi origine-------------
+//-------------Permettre les requetes multi origine-------------
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -59,8 +63,8 @@ app.use((req, res, next) => {
   );
   next();
 });
-//-------------Securise les en tete http-------------
 
+//-------------Securise les en tete http-------------
 app.use(
   helmet({
     crossOriginResourcePolicy: false,
@@ -70,13 +74,12 @@ app.use(
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-
 //app.use(express.json());
 //app.use(express.urlencoded({extended:true}));
 
-//-------------Les differentes routes interne et externe( voir les middleware coorespondant ainsi que les models-------------
-
 app.use(xss());
+
+//-------------Les différentes routes interne et externe( voir les middleware coorespondant ainsi que les models-------------
 
 app.use("/images", express.static(path.join(__dirname, "images")));
 app.use("/api/sauces", saucesRoutes);
@@ -84,4 +87,5 @@ app.use("/api/auth", apiLimiterCreateCount, userRoutes);
 app.use("/api/sauces", likesRoutes);
 
 //app.use(helmet())
+
 module.exports = app;

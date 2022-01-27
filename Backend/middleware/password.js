@@ -2,7 +2,7 @@
 
 const passwordValidator = require("password-validator");
 
-//creation de schema
+//creation de schema.
 
 const passwordSchema = new passwordValidator();
 
@@ -28,9 +28,15 @@ module.exports = (req, res, next) => {
   if (passwordSchema.validate(req.body.password)) {
     next();
   } else {
-   
-   return res.status(401).json({message:" Ce mot de passe n'est pas valide "})
-   // return res.status(401).json({message:`${res.status}`});
-   
+    return res.status(401).json({
+      message:
+        " Ce mot de passe n'est pas valide. Quatres caractéres au minimun dont une majucule et un chiffre. ",
+    });
   }
 };
+
+/* 
+On pourrait également avoir le model dans le dossier des models,
+exporter passwordSchema, faire uniqement la fonction en middleware*/
+
+/*dans cette fonction, on pourrait aussi définir une propriété de la requete avec un boolean qui serait utiliser dans le controlleur user*/

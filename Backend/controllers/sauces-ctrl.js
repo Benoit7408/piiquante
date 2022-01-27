@@ -1,8 +1,11 @@
+//On à besoins du schema de bdd et de la dépendance fs
+
 const Sauces = require("../models/Sauces-model");
 const fs = require("fs");
 
-//--------logique de route selon des conditions, répond au promesse selon les conditions d'acces ou d'authorisation de la requete-------------
+//--------logique de route selon des conditions, répond au promesses selon les conditions d'accés ou d'authorisation de la requete.-------------
 
+//Création de sauces avec un constructeur pour avoir une instance
 exports.createSauce = (req, res, next) => {
   const saucesObject = JSON.parse(req.body.sauce);
   delete saucesObject._id;
@@ -18,18 +21,21 @@ exports.createSauce = (req, res, next) => {
     .catch((error) => res.status(400).json({ error }));
 };
 
+//get  toutes les sauces
 exports.findSauces = (req, res, next) => {
   Sauces.find()
     .then((sauces) => res.status(200).json(sauces))
     .catch((error) => res.status(400).json({ error }));
 };
 
+//get une sauce
 exports.findOneSauce = (req, res, next) => {
   Sauces.findOne({ _id: req.params.id })
     .then((sauces) => res.status(200).json(sauces))
     .catch((error) => res.status(404).json({ error }));
 };
 
+//mise à jour d'une sauce avec la gestion d'une image dans la requete, si tel est le cas, la suppression de l'ancienne image de la sauce, Module fs.
 exports.updateOne = (req, res, next) => {
   Sauces.findOne({ _id: req.params.id })
     .then((sauce) => {
@@ -55,28 +61,31 @@ exports.updateOne = (req, res, next) => {
             .then(() =>
               res
                 .status(200)
-                .json({ message: "sauce modifié et image modifié" })
+                .json({ message: "La sauce ainsi que l'image ont été modifié" })
             )
             .catch((error) => res.status(404).json({ error }));
         });
-      }
-      else Sauces.updateOne(
-        { _id: req.params.id },
-        { ...saucesObject, _id: req.params.id }
-      )
-        .then(() => res.status(200).json({ message: "sauce modifié" }))
-        .catch((error) => res.status(404).json({ error }));
+      } else
+        Sauces.updateOne(
+          { _id: req.params.id },
+          { ...saucesObject, _id: req.params.id }
+        )
+          .then(() =>
+            res.status(200).json({ message: "La sauce modifié a été modifié" })
+          )
+          .catch((error) => res.status(404).json({ error }));
     })
-    .catch((error) => res.status(401).json("une erreur"));
+    .catch((error) => res.status(401).json({ error }));
 };
 
+// La suppression d'une sauces, module fs.
 exports.deleteOneSauce = (req, res, next) => {
   Sauces.findOne({ _id: req.params.id })
     .then((sauce) => {
       if (!sauce) {
         return res
           .status(404)
-          .json({ error: new Error("la sauce est introuvable") });
+          .json({ error: new Error("La sauce est introuvable") });
       }
       if (sauce.userId !== req.auth.userId) {
         return res
@@ -86,16 +95,18 @@ exports.deleteOneSauce = (req, res, next) => {
       const filename = sauce.imageUrl.split("/image/")[1];
       fs.unlink(`images/${filename}`, () => {
         Sauces.deleteOne({ _id: req.params.id })
-          .then(() => res.status(200).json({ message: "sauces supprimé" }))
+          .then(() =>
+            res.status(200).json({ message: "La sauce est supprimé !" })
+          )
           .catch((error) => res.status(404).json({ error }));
       });
     })
     .catch((error) => res.status(500).json({ error }));
 };
 
+// La gestion des like et dislike, simple pour req.body.like 1 ou -1 , la gestion est différente pour 0.
 exports.likeSauce = (req, res, next) => {
   const userId = req.body.userId;
-  
 
   switch (req.body.like) {
     case 1: {

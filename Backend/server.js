@@ -1,7 +1,11 @@
+// dépendance pour la creation de notre server
+
 const http = require('http');
 require('dotenv').config({path: './config/.env'});
 require('./config/db')
 const app = require('./app');
+
+//Pour un port valide
 
 const normalizePort = val => {
   const port = parseInt(val, 10);
@@ -16,6 +20,8 @@ const normalizePort = val => {
 };
 const port = normalizePort(process.env.PORT ||'3000');
 app.set('port', port);
+
+//gestion d'erreur
 
 const errorHandler = error => {
   if (error.syscall !== 'listen') {
